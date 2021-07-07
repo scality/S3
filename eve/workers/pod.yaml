@@ -196,10 +196,10 @@ spec:
       imagePullPolicy: IfNotPresent
       resources:
         requests:
-          cpu: 500m
+          cpu: 400m
           memory: 1536Mi
         limits:
-          cpu: 500m
+          cpu: 400m
           memory: 1536Mi
       volumeMounts:
         - name: artifacts
@@ -222,6 +222,27 @@ spec:
           cpu: 100m
           memory: 128Mi
     {%- endif %}
+    {% if vars.env.S3DATA is defined and vars.env.S3DATA == "multiple" -%}
+    - name: azurite
+      image: mcr.microsoft.com/azure-storage/azurite:3.13.0
+      command: ['azurite']
+      args: ['--blobHost', '0.0.0.0', '--debug', '/artifacts/azurite.log']
+      env:
+      - name: AZURITE_ACCOUNTS
+        value: "fakeaccountname:Fake00Key001;fakeaccountname2:Fake00Key002"
+      volumeMounts:
+        - name: azurite
+          mountPath: /data
+        - name: artifacts
+          mountPath: /artifacts
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+    {% endif %}
   volumes:
     - name: creds
       emptyDir: {}
@@ -230,4 +251,6 @@ spec:
     - name: artifacts
       emptyDir: {}
     - name: kmip-certs
+      emptyDir: {}
+    - name: azurite
       emptyDir: {}
